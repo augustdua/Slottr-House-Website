@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Rankings</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Game Rankings</h1>
+        <p>Updated automatically.</p> <p>Last Updated: <span id="last-updated">Never</span></p>
+    </header>
+
+    <nav id="ranking-categories">
+        <button data-ranking="by-total-spins" class="active">Total Spins</button>
+        <button data-ranking="by-total-bet">Total Bet</button>
+        <button data-ranking="by-rtp">Best RTP</button>
+        <button data-ranking="by-volatility">Highest Volatility</button>
+        <button data-ranking="by-max-win">Biggest Wins (Per Game)</button>
+        <button data-ranking="top-winning-spins">Top Single Spin Wins</button>
+    </nav>
+
+    <main id="ranking-display">
+        <h2 id="current-ranking-title">Total Spins</h2>
+        <div id="loading-indicator" style="display: none;">Loading rankings...</div>
+        <div id="error-message" style="display: none; color: red;"></div>
+        <div id="list-container">
+             <ol id="ranking-list">
+                </ol>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+
+    <script>
+      console.log('TEST: Inline script inside HTML is running!');
+    </script>
+</body>
+</html>

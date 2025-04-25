@@ -1,0 +1,15 @@
+# Unmatched Hacksaw Images
+
+# Unmatched Pragmatic Images
+pragmatic_189_Dragon_Tiger.jpg | cleaned: "dragon tiger" | best match: "888 Dragons™" (normalized: "dragons") | score: 25
+pragmatic_217_High_Flyer.jpg | cleaned: "high flyer" | best match: "No match" (normalized: "") | score: 0
+pragmatic_238_Multihand_Blackjack.jpg | cleaned: "multihand blackjack" | best match: "Black Bull" (normalized: "black bull") | score: 25
+pragmatic_243_Roulette.jpg | cleaned: "roulette" | best match: "No match" (normalized: "") | score: 0
+pragmatic_250_Roulette_Crystal.jpg | cleaned: "roulette crystal" | best match: "Magic Crystals" (normalized: "magic crystals") | score: 25
+pragmatic_25_Unknown_Game_25.jpg | cleaned: "unknown game" | best match: "No match" (normalized: "") | score: 0
+pragmatic_28_Unknown_Game_28.jpg | cleaned: "unknown game" | best match: "No match" (normalized: "") | score: 0
+pragmatic_292_Spaceman.jpg | cleaned: "spaceman" | best match: "No match" (normalized: "") | score: 0
+pragmatic_428_Lucky_Tiger.jpg | cleaned: "lucky tiger" | best match: "Peking Luck™" (normalized: "peking luck") | score: 25
+pragmatic_429_Lucky_Mouse.jpg | cleaned: "lucky mouse" | best match: "Peking Luck™" (normalized: "peking luck") | score: 25
+pragmatic_474_Blitz_Super_Wheel.jpg | cleaned: "blitz super wheel" | best match: "Candy Blitz™" (normalized: "candy blitz") | score: 16.666666666666664
+pragmatic_72_American_Blackjack.jpg | cleaned: "american blackjack" | best match: "Black Bull" (normalized: "black bull") | score: 25
