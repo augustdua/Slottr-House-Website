@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect } from "react"
 import { Eye, Play, Zap } from "lucide-react"
+import ExpandableCard from "./expandableCard"
+import { useRankingData } from "../hooks/fetchData"
+import { mapPopularGames, mapStakeGames, mapRtpGames, mapVolatileGames, mapWinnerData } from "../utils/HelperFunction"
 
 // Data structures to mimic JSON responses
 const TABS = [
@@ -147,23 +150,34 @@ const WINNERS_DATA = [
 
 ]
 
-// Reusable Small Game Card Component
-const SmallGameCard = ({ image, badge, rank, badgeValue }) => {
-    const badgeText = badge || rank;
-
+const GamesHorizontalList = ({ games }) => {
+    const scrollContainerRef = useRef(null)
     return (
-        <div className="relative rounded-lg overflow-hidden">
-            <img src={image} alt={`Game thumbnail ${badgeText}`} className="w-full h-auto" />
-            <div className="absolute top-4 left-4 bg-[#292929] rounded-full w-8 h-8 flex items-center justify-center">
-                <span className="text-white font-bold text-xs">{badgeText}</span>
-            </div>
-            <div className="absolute bottom-4 right-4 bg-[#fa5258] text-white rounded-md px-2 py-1 font-bold text-sm">
-                {badgeValue}
+        <div className="w-full mt-6 max-w-7xl mx-auto">
+            <div
+                ref={scrollContainerRef}
+                className="flex overflow-x-auto pb-8 gap-4 snap-x snap-mandatory hide-scrollbar"
+                style={{ scrollBehavior: "smooth" }}
+            >
+                {games.map((game) => (
+                    <div key={game.id} className="snap-start">
+                        <ExpandableCard
+                            title={`Game ${game.rank || game.badge}`}
+                            image={game.image}
+                            color="bg-[#292929]"
+                            scrollContainer={scrollContainerRef}
+                            badgeText={game.badge || game.rank}
+                            badgeValue={game.badgeValue}
+                            defaultWidth={150}
+                            expandedWidth={250}
+                            height={150}
+                        />
+                    </div>
+                ))}
             </div>
         </div>
-    );
-};
-
+    )
+}
 // Winner Item Component
 const WinnerItem = ({ winner }) => {
     return (
@@ -232,25 +246,12 @@ export const WinnerSection = ({ winners }) => {
     );
 };
 // Tab Content Component
-const TabContent = ({ activeTab }) => {
-    const data = TAB_DATA[activeTab];
+const TabContent = ({ activeTab, data }) => {
 
     if (!data) return null;
-
     // Extract the top three games
-    const getTop3Games = () => {
-        if (!data.featuredGames || data.featuredGames.length < 3) return [];
+    const top3Games = data.featuredGames || [];
 
-        // Sort by rank if the property exists
-        const orderedGames = [...data.featuredGames];
-        if (orderedGames[0].rank) {
-            orderedGames.sort((a, b) => a.rank - b.rank);
-        }
-
-        return orderedGames.slice(0, 3);
-    };
-
-    const top3Games = getTop3Games();
 
     return (
         <>
@@ -309,17 +310,7 @@ const TabContent = ({ activeTab }) => {
             </div>
 
             {/* Bottom Games Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
-                {data.bottomGames.map(game => (
-                    <SmallGameCard
-                        key={game.id}
-                        image={game.image}
-                        rank={game.rank}
-                        badge={game.badge}
-                        badgeValue={game.badgeValue}
-                    />
-                ))}
-            </div>
+            <GamesHorizontalList games={data.bottomGames || []} />
         </>
     );
 };
@@ -381,7 +372,26 @@ const GamingPlatform = () => {
         background: "",
         boxShadow: "",
     });
+    // Fetch data from APIs
+    const {
+        popularGames,
+        stakeGames,
+        rtpGames,
+        volatileGames,
+        winnerGames,
+        isLoading,
+        error,
+        lastUpdated,
+        refetch
+    } = useRankingData();
 
+    const mappedData = {
+        popular: popularGames ? mapPopularGames(popularGames) : TAB_DATA.popular,
+        stake: stakeGames ? mapStakeGames(stakeGames) : TAB_DATA.stake,
+        rtp: rtpGames ? mapRtpGames(rtpGames) : TAB_DATA.rtp,
+        volatile: volatileGames ? mapVolatileGames(volatileGames) : TAB_DATA.volatile
+    };
+    const mappedWinners = winnerGames ? mapWinnerData(winnerGames) : WINNERS_DATA;
     // Refs for tab buttons
     const tabRefs = {
         popular: useRef(null),
@@ -439,11 +449,11 @@ const GamingPlatform = () => {
                 </div>
 
                 {/* Content based on active tab */}
-                <TabContent activeTab={activeTab} />
+                <TabContent activeTab={activeTab} data={mappedData[activeTab]} />
             </div>
 
             {/* Winners Section */}
-            <WinnerSection winners={WINNERS_DATA} />
+            <WinnerSection winners={mappedWinners} />
         </div>
     );
 };

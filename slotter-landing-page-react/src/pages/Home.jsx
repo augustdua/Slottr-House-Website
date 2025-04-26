@@ -4,7 +4,7 @@ import { Card, CardContent } from '../components/Card'
 import SelectableButton from '../components/button'
 import GamingPlatform from '../components/GaminPlatform';
 import Comments from '../components/Comments';
-import { WebClient } from '../../services/httpclient';
+import { WebClient } from '../services/httpclient';
 function Home() {
     const date = new Date();
     const API_URL = import.meta.env.VITE_BASE_URL;
