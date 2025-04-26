@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from "react"
 import { Eye, Play, Zap } from "lucide-react"
-import { Star, Rss } from 'lucide-react'; // Using Lucide React for the star icon
-
+import { Star, Rss } from 'lucide-react'; // Using Lucide React for the star i
+import { WebClient } from "../../services/httpclient"
 const GameFilterButtons = () => {
     const [selected, setSelected] = useState('Live'); // Default to "Live" selected
-
+    const APIURL = import.meta.env.VITE_BASE_URL;
     const handleSelect = (button) => {
         setSelected(button);
     };
+
 
     return (
         <div className="flex items-center gap-4">

@@ -1,12 +1,31 @@
 // src/pages/Home.jsx
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Card, CardContent } from '../components/Card'
 import SelectableButton from '../components/button'
 import GamingPlatform from '../components/GaminPlatform';
 import Comments from '../components/Comments';
+import { WebClient } from '../../services/httpclient';
 function Home() {
     const date = new Date();
+    const API_URL = import.meta.env.VITE_BASE_URL;
+    // Fetch data when the component mounts
+    useEffect(() => {
+        fetchData();
+    }, []);
+    const fetchData = async () => {
+        try {
+            // Don't use API_URL here - WebClient already has the base URL configured
+            const data = await WebClient.get('/by-total-spins');
 
+            // No need to access .data - your interceptor already returns just the data
+            console.log('API Response:', data);
+
+            // Do something with the data
+            // setYourState(data);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
     // Format date as "MMM dd, yyyy"
     const formattedDate = date.toLocaleDateString('en-US', {
         month: 'short',
