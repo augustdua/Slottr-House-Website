@@ -12,7 +12,7 @@ export default function ExpandableCard({
     badgeText,
     badgeValue,
     defaultWidth = 280,
-    expandedWidth = 480,
+    expandedWidth = 800,
     height = 200
 }) {
     const [isHovered, setIsHovered] = useState(false)
