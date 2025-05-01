@@ -2,64 +2,75 @@
 
 import { useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Play } from "lucide-react"
 
 export default function ExpandableCard({
     title,
     image,
     color,
-    scrollContainer,
+    scrollContainer,       // ref to the scrolling wrapper
     badgeText,
     badgeValue,
+    stats = { views: '1.2M', likes: '50K' },    // stats data for display
     defaultWidth = 280,
     expandedWidth = 800,
-    height = 200
+    height = 200,
+    onHoverChange = () => { } // Add this prop
 }) {
     const [isHovered, setIsHovered] = useState(false)
+    const [origin, setOrigin] = useState("left")   // "left" | "center" | "right"
     const cardRef = useRef(null)
 
     const handleMouseEnter = () => {
-        setIsHovered(true)
-
         if (cardRef.current && scrollContainer?.current) {
-            const card = cardRef.current
-            const container = scrollContainer.current
-            const cardRect = card.getBoundingClientRect()
-            const containerRect = container.getBoundingClientRect()
+            const cardRect = cardRef.current.getBoundingClientRect()
+            const containerRect = scrollContainer.current.getBoundingClientRect()
+            const cardCenterX = cardRect.left - containerRect.left + cardRect.width / 2
+            const third = containerRect.width / 3
 
-            if (cardRect.right + (expandedWidth - defaultWidth) > containerRect.right) {
-                container.scrollBy({
-                    left:
-                        cardRect.right + (expandedWidth - defaultWidth) - containerRect.right,
-                    behavior: "smooth",
-                })
+            // Determine which third of the container the card is in
+            if (cardCenterX < third) {
+                setOrigin("left")
+            } else if (cardCenterX > 2 * third) {
+                setOrigin("right")
+            } else {
+                setOrigin("center")
             }
         }
+        setIsHovered(true)
+        onHoverChange(true) // Call the callback function when hovered
     }
 
     const handleMouseLeave = () => {
         setIsHovered(false)
+        onHoverChange(false) // Call the callback function when not hovered
     }
+
+    // Compute the CSS transform-origin based on card position
+    const transformOrigin = {
+        left: "left center",
+        center: "center center",
+        right: "right center"
+    }[origin]
 
     return (
         <motion.div
             ref={cardRef}
-            className={`relative rounded-lg overflow-hidden cursor-pointer `}
-            style={{ height: `${height}px` }}
-            initial={{ width: defaultWidth }}
-            animate={{ width: isHovered ? expandedWidth : defaultWidth }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
+            className="relative rounded-lg overflow-hidden cursor-pointer"
+            style={{
+                height: `${height}px`,
+                width: defaultWidth,
+                zIndex: isHovered ? 20 : 1,
+                transformOrigin
+            }}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
-            {/* Background color visible only when NOT hovered */}
+            {/* BACKGROUND LAYER (color or image) */}
             <motion.div
-                className={`absolute inset-0 ${color} transition-opacity duration-400`}
+                className={`absolute inset-0 ${color} transition-opacity duration-300`}
                 initial={{ opacity: 1 }}
                 animate={{ opacity: isHovered ? 0 : 1 }}
             />
-
-            {/* Background image visible only on hover */}
             <motion.div
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: `url(${image})` }}
@@ -68,9 +79,8 @@ export default function ExpandableCard({
                 transition={{ duration: 0.4 }}
             />
 
-            {/* Content container */}
+            {/* STATIC CONTENT */}
             <div className="relative h-full z-10 flex flex-col justify-between p-0">
-                {/* Main image */}
                 <motion.div
                     className="w-full h-full relative"
                     animate={{ opacity: isHovered ? 0 : 1 }}
@@ -92,31 +102,62 @@ export default function ExpandableCard({
                 </motion.div>
             </div>
 
-            {/* Expanded content */}
+            {/* HOVER EXPANDED OVERLAY */}
             <AnimatePresence>
                 {isHovered && (
                     <motion.div
-                        className="absolute top-0 right-0 h-full w-full flex rounded-lg overflow-hidden"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
+                        className="absolute top-0 h-full w-full flex rounded-lg overflow-hidden"
+                        style={{
+                            width: expandedWidth,
+                            zIndex: 30,
+                            // Position the expanded overlay based on card position
+                            left: origin === "right" ? "auto" : 0,
+                            right: origin === "right" ? 0 : "auto",
+                            transformOrigin,
+                        }}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                     >
-                        {/* Left half: text + play button */}
-                        <div className="w-1/2 bg-black bg-opacity-70 flex flex-col justify-center items-center p-3 gap-2">
+                        {/* LEFT PANEL: title + buttons + stats */}
+                        <div className="w-1/2 bg-black bg-opacity-70 flex flex-col justify-center items-center p-4 gap-4">
                             <h3 className="text-white text-lg font-bold text-center">{title}</h3>
-                            <motion.button
-                                className="flex items-center justify-center bg-red-600 text-white px-4 py-1 rounded-full font-medium hover:bg-red-700 transition"
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.2, duration: 0.3 }}
-                            >
-                                <Play className="w-3 h-3 mr-1" />
-                                Play
-                            </motion.button>
+
+                            <div className="flex space-x-3">
+                                <motion.button
+                                    className="px-4 py-2 rounded-full border border-white text-white font-medium hover:bg-white hover:text-black transition"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.2, duration: 0.3 }}
+                                >
+                                    Demo
+                                </motion.button>
+
+                                <motion.button
+                                    className="px-4 py-2 rounded-full border border-white text-white font-medium hover:bg-white hover:text-black transition"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.3, duration: 0.3 }}
+                                >
+                                    Stats
+                                </motion.button>
+                            </div>
+
+                            {/* Stats display */}
+                            {Object.keys(stats).length > 0 && (
+                                <div className="flex space-x-6 mt-2">
+                                    {Object.entries(stats).map(([label, value]) => (
+                                        <div key={label} className="text-center">
+                                            <div className="text-white font-bold">{value}</div>
+                                            <div className="text-gray-300 text-xs">{label}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
-                        {/* Right half: image with background */}
+                        {/* RIGHT PANEL: background image & badge */}
                         <div
                             className="w-1/2 relative"
                             style={{
@@ -130,7 +171,7 @@ export default function ExpandableCard({
                                 alt={title}
                                 className="w-full h-full object-cover opacity-90"
                             />
-                            <div className="absolute bottom-2 right-2 bg-[#fa5258] text-white rounded-md px-2 py-1 text-xs font-bold">
+                            <div className="absolute bottom-3 right-3 bg-[#fa5258] text-white rounded-md px-2 py-1 text-xs font-bold">
                                 {badgeValue}
                             </div>
                         </div>

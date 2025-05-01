@@ -38,7 +38,7 @@ const Header = () => {
                 </button>
 
                 {/* Navigation items for larger screens */}
-                <div className="hidden md:flex items-center gap-6">
+                {/* <div className="hidden md:flex items-center gap-6">
                     {navItems.map((item) => {
                         const isActive = item.id === activeId;
                         return (
@@ -56,10 +56,10 @@ const Header = () => {
                             </div>
                         );
                     })}
-                </div>
+                </div> */}
 
                 {/* Search and buttons for larger screens */}
-                <div className="hidden md:flex items-center gap-1.5">
+                {/* <div className="hidden md:flex items-center gap-1.5">
                     <div
                         className={`flex items-center flex-1 px-4 py-[11px] rounded-[40px] border ${commonInactive}`}
                     >
@@ -75,14 +75,14 @@ const Header = () => {
                     >
                         <SettingsIcon className="w-5 h-5 text-white" />
                     </button>
-                </div>
+                </div> */}
 
                 {/* Profile button for larger screens */}
-                <button
+                {/* <button
                     className={`hidden md:flex w-10 h-10 items-center justify-center p-2 rounded-[40px] border ${commonInactive}`}
                 >
                     <UserIcon className="w-5 h-5 text-white" />
-                </button>
+                </button> */}
             </nav>
 
             {/* Mobile menu */}

@@ -18,7 +18,13 @@ export const FavoriteCasinos = () => {
             </h2>
             <div className="flex flex-col gap-3">
                 {casinos.map((casino) => (
-                    <div key={casino.id} className="bg-[#292929] rounded-lg p-3 flex items-center hover:bg-[#333] transition-colors cursor-pointer">
+                    <div
+                        key={casino.id}
+                        className="bg-[#292929] rounded-lg p-3 flex items-center 
+                                   hover:bg-[#333] transition-colors 
+                                   hover:scale-[1.05] hover:shadow-lg 
+                                   transition-transform duration-200 cursor-pointer"
+                    >
                         <img src={casino.image} alt={casino.name} className="w-12 h-12 rounded object-cover mr-3" />
                         <div className="flex-1">
                             <div className="font-medium">{casino.name}</div>

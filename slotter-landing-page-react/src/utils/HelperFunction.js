@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 // Create a default placeholder image URL based on game name
 const getGameImage = (game) => {
     return game.game_image || `https://placehold.co/300x300/222/fff?text=${encodeURIComponent(game.game_name.substring(0, 10))}`;
@@ -14,6 +16,7 @@ const mapGames = (games, valueKey, badgeFormatter) => {
     const featuredGames = sortedGames.slice(0, 3).map((game, index) => ({
         id: game.game_id,
         rank: index + 1,
+        gameName: game.game_name,
         image: getGameImage(game),
         badgeValue: badgeFormatter ? badgeFormatter(game[valueKey]) : game[valueKey],
         borderStyle: index === 0 ? "border-4 border-[#ffb636] shadow-lg" :
@@ -27,6 +30,7 @@ const mapGames = (games, valueKey, badgeFormatter) => {
     const bottomGames = sortedGames.slice(3, 8).map((game, index) => ({
         id: game.game_id,
         rank: index + 4,
+        gameName: game.game_name,
         image: getGameImage(game),
         badgeValue: badgeFormatter ? badgeFormatter(game[valueKey]) : game[valueKey]
     }));
@@ -92,21 +96,52 @@ export const mapVolatileGames = (games) => {
     };
 };
 
-// Map winner data from max win values
-export const mapWinnerData = (games) => {
-    // Sort by max win
-    const sortedGames = [...games]
-        .sort((a, b) => b.max_win - a.max_win)
-        .filter(game => game.max_win > 0)
-        .slice(0, 8);
+// Load the plugin
+dayjs.extend(relativeTime);
 
-    return sortedGames.map((game, index) => ({
-        id: game.game_id || index,
-        gameName: game.game_name || "Unknown Game",
-        amount: `€${game.max_win.toFixed(2)}`,
-        platform: game.provider || "1000xbet",
-        sponsor: "Bonus by",
-        timeAgo: "Just now",
-        image: getGameImage(game)
-    }));
+
+export const mapWinnerData = (games) => {
+    console.log("mapWinnerData function called");
+
+    // Check if games exists and is an array
+    try {
+        // Sort by max win - with error handling
+
+
+        return games.map((game, index) => {
+
+            // console.log(`Last updated timestamp:`, game.last_updated);
+
+            // Format time with fallback
+            let timeAgo = "Just now";
+            try {
+                if (game.last_updated) {
+                    const lastUpdated = dayjs(game.last_updated);
+                    if (lastUpdated) {
+                        timeAgo = lastUpdated.fromNow();
+
+                    } else {
+                        console.warn(`Invalid date format:`, game.last_updated);
+                    }
+                } else {
+                    console.warn(`No timestamp for game:`, game.game_name);
+                }
+            } catch (error) {
+                console.error(`Time formatting error:`, error);
+            }
+
+            return {
+                id: game.game_id || `winner-${index}`,
+                gameName: game.game_name || "Unknown Game",
+                amount: `€${(game.max_win || 0).toFixed(2)}`,
+                platform: game.provider || "1000xbet",
+                sponsor: "Bonus by",
+                timeAgo: timeAgo,
+                image: getGameImage(game)
+            };
+        });
+    } catch (error) {
+        console.error("Error processing winner data:", error);
+        return [];
+    }
 };
