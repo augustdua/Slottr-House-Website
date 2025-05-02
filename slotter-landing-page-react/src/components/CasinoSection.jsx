@@ -8,6 +8,9 @@ export const FavoriteCasinos = () => {
         { id: 3, name: "Golden Palace", image: "https://placehold.co/100x50?text=GoldenPalace", rating: 4.6 },
         { id: 4, name: "Star Casino", image: "https://placehold.co/100x50?text=StarCasino", rating: 4.5 },
         { id: 5, name: "Diamond Club", image: "https://placehold.co/100x50?text=DiamondClub", rating: 4.4 },
+        { id: 31, name: "Golden Palace", image: "https://placehold.co/100x50?text=GoldenPalace", rating: 4.6 },
+        // { id: 41, name: "Star Casino", image: "https://placehold.co/100x50?text=StarCasino", rating: 4.5 },
+        // { id: 52, name: "Diamond Club", image: "https://placehold.co/100x50?text=DiamondClub", rating: 4.4 },
     ];
 
     return (
@@ -16,7 +19,7 @@ export const FavoriteCasinos = () => {
                 <Star className="w-5 h-5 text-[#ffb636] mr-2" fill="#ffb636" />
                 Top Casinos
             </h2>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-5">
                 {casinos.map((casino) => (
                     <div
                         key={casino.id}

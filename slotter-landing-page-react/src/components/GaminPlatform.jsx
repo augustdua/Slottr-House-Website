@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { Eye, Play, Zap, Flame, DollarSign, TrendingUp, Bolt } from "lucide-react"
-import ExpandableCard from "./expandableCard"
+
 import { FavoriteCasinos } from "./CasinoSection"
 import { useRankingData } from "../hooks/fetchData"
 import { mapPopularGames, mapStakeGames, mapRtpGames, mapVolatileGames, mapWinnerData } from "../utils/HelperFunction"
