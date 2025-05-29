@@ -4,3 +4,40 @@
 
   background-color: #0d0d0d;
 }
+/* Hide scrollbars globally while keeping scroll functionality */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+/* If you want to be more specific, target just scroll containers */
+body,
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body::-webkit-scrollbar,
+html::-webkit-scrollbar {
+  display: none;
+}
+
+/* For any element with overflow scroll/auto */
+.overflow-auto::-webkit-scrollbar,
+.overflow-scroll::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar {
+  display: none;
+}
+
+.overflow-auto,
+.overflow-scroll,
+.overflow-x-auto,
+.overflow-y-auto {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}

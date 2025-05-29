@@ -1,11 +1,12 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { Eye, Play, Zap, Flame, DollarSign, TrendingUp, Bolt } from "lucide-react"
-
+import React from "react"
 import { FavoriteCasinos } from "./CasinoSection"
 import { useRankingData } from "../hooks/fetchData"
 import { mapPopularGames, mapStakeGames, mapRtpGames, mapVolatileGames, mapWinnerData } from "../utils/HelperFunction"
 import { HorizontalCardList, RankedGameCard } from "./HoverCard"
 import { motion, AnimatePresence } from "framer-motion"
+
 // Data structures to mimic JSON responses
 const TABS = [
     { id: "popular", label: "Most popular", icon: <Flame size={18} /> },
@@ -14,8 +15,8 @@ const TABS = [
     { id: "volatile", label: "Most Volatile", icon: <Bolt size={18} /> }
 ];
 
-// Winner Item Component
-const WinnerItem = ({ winner }) => {
+// Winner Item Component - Memoized to prevent unnecessary re-renders
+const WinnerItem = React.memo(({ winner }) => {
     return (
         <div className="mb-3">
             <div className="flex gap-2 bg-[#292929] p-2 rounded-lg items-center">
@@ -53,9 +54,10 @@ const WinnerItem = ({ winner }) => {
             </div>
         </div>
     );
-};
-// Winners Section Component
-export const WinnerSection = ({ winners }) => {
+});
+
+// Winners Section Component - Memoized
+export const WinnerSection = React.memo(({ winners }) => {
     return (
         <div className="w-full md:w-1/4 bg-[#1b1b1b] rounded-lg p-3 flex flex-col h-[600px]">
             {/* Fixed header - smaller text and padding */}
@@ -79,119 +81,139 @@ export const WinnerSection = ({ winners }) => {
             </div>
         </div>
     );
-};
+});
 
-// Tab Content Component
-const TabContent = ({ activeTab, data }) => {
-    console.log("data for Tab content", data);
-
-    if (!data || !data.featuredGames || data.featuredGames.length < 3) {
-        // Handle cases with insufficient data (optional: show a message or different layout)
-        return <div className="text-center py-10 text-gray-500">Not enough data to display podium.</div>;
-    }
-
-    const top3Games = data.featuredGames;
-
-    // Define size mappings for ExpandableCard based on podium rank/cardSize
+// Memoized PodiumPosition component
+const PodiumPosition = React.memo(({ game, rank, heightClass, cardSize, isHovered, onMouseEnter, onMouseLeave }) => {
     const cardDimensions = {
         large: { defaultWidth: 240, expandedWidth: 480, height: 280 },
         medium: { defaultWidth: 220, expandedWidth: 440, height: 240 },
         small: { defaultWidth: 200, expandedWidth: 400, height: 200 }
     };
-    // Helper function to render a podium position
-    const PodiumPosition = ({ game, rank, bgColor, heightClass, cardSize }) => {
-        const dimensions = cardDimensions[cardSize];
 
-        // Prepare the item object for RankedGameCard
-        const cardItem = {
-            id: game?.id,
-            rank: game?.rank || rank,
-            gameName: game?.gameName || `Game #${rank}`,
-            image: game?.image,
-            badgeValue: game?.badgeValue || "",
-            // Add any other properties RankedGameCard might use (e.g., tagline, releaseDate)
-            tagline: `Ranked #${game?.rank || rank} with value ${game?.badgeValue || ""}`,
-            // releaseDate: game?.releaseDate // Example if you have it
-        };
+    const dimensions = cardDimensions[cardSize];
 
-        return (
-            // The heightClass (pt-*) still controls the vertical alignment of the base
-            <div className={`flex flex-col items-center ${heightClass}`}>
-                <RankedGameCard
-                    item={cardItem} // Pass the prepared item object
-                    defaultWidth={dimensions.defaultWidth}
-                    expandedWidth={dimensions.expandedWidth}
-                    height={dimensions.height}
-                />
-                {/* Integrated Base */}
-            </div>
-        );
-    };
+    // Prepare the item object for RankedGameCard
+    const cardItem = useMemo(() => ({
+        id: game?.id,
+        rank: game?.rank || rank,
+        gameName: game?.gameName || `Game #${rank}`,
+        image: game?.image,
+        badgeValue: game?.badgeValue || "",
+        tagline: `Ranked #${game?.rank || rank} with value ${game?.badgeValue || ""}`,
+    }), [game, rank]);
+
+    return (
+        <div className={`flex flex-col items-center ${heightClass}`}>
+            <RankedGameCard
+                item={cardItem}
+                defaultWidth={dimensions.defaultWidth}
+                expandedWidth={dimensions.expandedWidth}
+                height={dimensions.height}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
+                forceHover={isHovered}
+            />
+        </div>
+    );
+});
+
+// Tab Content Component
+// TabContent Component
+const TabContent = ({ activeTab, data }) => {
+    // console.log("TabContent rendering for activeTab:", activeTab); // For debugging
+    const [hoveredPodiumIndex, setHoveredPodiumIndex] = useState(null);
+
+    const handleMouseEnterPodium = useCallback((index) => {
+        setHoveredPodiumIndex(index);
+    }, []);
+
+    const handleMouseLeavePodium = useCallback(() => {
+        setHoveredPodiumIndex(null);
+    }, []);
+
+    // podiumHandlers is already well-memoized
+    const podiumHandlers = useMemo(() => ({
+        0: { onMouseEnter: () => handleMouseEnterPodium(0), onMouseLeave: handleMouseLeavePodium },
+        1: { onMouseEnter: () => handleMouseEnterPodium(1), onMouseLeave: handleMouseLeavePodium },
+        2: { onMouseEnter: () => handleMouseEnterPodium(2), onMouseLeave: handleMouseLeavePodium }
+    }), [handleMouseEnterPodium, handleMouseLeavePodium]);
+
+    // Pre-process bottomGames for stable item props
+    const processedBottomGames = useMemo(() => {
+        if (!data || !data.bottomGames) return [];
+        // Assuming your mapping functions (mapPopularGames etc.) already provide
+        // most necessary fields like id, rank, gameName, badgeValue, image.
+        // Add any transformations specific to RankedGameCard if needed.
+        return data.bottomGames.map(game => ({
+            ...game, // Spread existing properties
+            id: game.id || game.rank || game.gameName, // Crucial for key and memoization
+            title: game.gameName, // RankedGameCard expects 'title'
+            // tagline: `Ranked #${game.rank} with ${game.badgeValue}`, // If you want to generate this here
+        }));
+    }, [data]); // Recompute only when 'data' (which comes from mappedData) changes
+
+    // Memoize the renderItem function for HorizontalCardList
+    const renderBottomGameCard = useCallback((processedGameItem) => (
+        <RankedGameCard
+            item={processedGameItem} // Pass the pre-processed item
+            defaultWidth={180}
+            expandedWidth={380}
+            height={150}
+        />
+    ), []); // This function itself doesn't depend on TabContent's state/props
+
+    if (!data || !data.featuredGames || data.featuredGames.length < 3) {
+        return <div className="text-center py-10 text-gray-500">Not enough data to display podium.</div>;
+    }
+
+    const top3Games = data.featuredGames;
+    const listTitle = data.listTitle || `More ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Games`;
+
 
     return (
         <>
-            {/* Podium Section - Using Flexbox for alignment */}
-            {/* Add relative positioning and z-index to the main podium container */}
+            {/* Podium Section */}
             <div className="mt-6 flex justify-center items-end gap-4 md:gap-8 px-4 relative z-0">
-                {/* Second Place */}
-                {/* Add relative positioning to allow z-index to work */}
-                <div className="w-1/4 md:w-auto relative z-0">
-                    <PodiumPosition
-                        game={top3Games[1]}
-                        rank={2}
-                        bgColor="bg-[#c0c0c0]" // Silver
-                        heightClass="pt-8"
-                        cardSize="medium"
-                    />
-                </div>
+                {[1, 0, 2].map((podiumIndexMapping, visualOrder) => {
+                    const gameIndex = podiumIndexMapping; // 0=first, 1=second, 2=third in data
+                    const game = top3Games[gameIndex];
+                    if (!game) return null; // Handle cases where a game might be missing
 
-                {/* First Place */}
-                {/* Ensure the first place wrapper allows the expanded card to overlap */}
-                <div className="w-1/3 md:w-auto relative z-10"> {/* Higher z-index */}
-                    <PodiumPosition
-                        game={top3Games[0]}
-                        rank={1}
-                        bgColor="bg-[#ffb636]" // Gold
-                        heightClass="pt-0"
-                        cardSize="large"
-                    />
-                </div>
+                    const cardSize = gameIndex === 0 ? "large" : (gameIndex === 1 ? "medium" : "small");
+                    const heightClass = gameIndex === 0 ? "pt-0" : (gameIndex === 1 ? "pt-8" : "pt-12");
+                    const zIndexClass = hoveredPodiumIndex === gameIndex ? 'z-30' : (gameIndex === 0 ? 'z-20' : 'z-10');
+                    const widthClass = gameIndex === 0 ? "w-1/3" : "w-1/4";
 
-                {/* Third Place */}
-                {/* Add relative positioning */}
-                <div className="w-1/4 md:w-auto relative z-0">
-                    <PodiumPosition
-                        game={top3Games[2]}
-                        rank={3}
-                        bgColor="bg-[#cd7f32]" // Bronze
-                        heightClass="pt-12"
-                        cardSize="small"
-                    />
-                </div>
+
+                    return (
+                        <div key={game.id || gameIndex} className={`${widthClass} md:w-auto relative transition-all duration-200 ${zIndexClass}`}>
+                            <PodiumPosition
+                                game={game}
+                                rank={game.rank || (gameIndex + 1)} // Use game.rank if available
+                                heightClass={heightClass}
+                                cardSize={cardSize}
+                                isHovered={hoveredPodiumIndex === gameIndex}
+                                onMouseEnter={podiumHandlers[gameIndex].onMouseEnter}
+                                onMouseLeave={podiumHandlers[gameIndex].onMouseLeave}
+                            />
+                        </div>
+                    );
+                })}
             </div>
 
-            {/* Bottom Games List - Also using RankedGameCard */}
+            {/* Bottom Games List */}
             <HorizontalCardList
-                items={data.bottomGames || []}
-                renderItem={(item) => (
-                    <RankedGameCard
-                        item={{
-                            ...item,
-                            title: item.gameName, // Ensure title is passed if needed by RankedGameCard internally
-                            tagline: `Ranked #${item.rank} with ${item.badgeValue}`,
-                        }}
-                        defaultWidth={180}
-                        expandedWidth={380}
-                        height={150}
-                    />
-                )}
+                items={processedBottomGames}
+                renderItem={renderBottomGameCard}
                 gap={12}
                 className="mt-8"
-                title="More Popular Games"
+                title={listTitle}
             />
         </>
     );
 };
+
 
 const GamingPlatform = () => {
     // State for active tab
@@ -203,6 +225,7 @@ const GamingPlatform = () => {
         background: "",
         boxShadow: "",
     });
+
     // Fetch data from APIs
     const {
         popularGames,
@@ -212,17 +235,21 @@ const GamingPlatform = () => {
         winnerGames,
         isLoading,
         error,
-
         refetch
     } = useRankingData();
 
-    const mappedData = {
+    // Memoize mapped data to prevent unnecessary recalculations
+    const mappedData = useMemo(() => ({
         popular: popularGames ? mapPopularGames(popularGames) : [],
         stake: stakeGames ? mapStakeGames(stakeGames) : [],
         rtp: rtpGames ? mapRtpGames(rtpGames) : [],
         volatile: volatileGames ? mapVolatileGames(volatileGames) : []
-    };
-    const mappedWinners = winnerGames ? mapWinnerData(winnerGames) : [];
+    }), [popularGames, stakeGames, rtpGames, volatileGames]);
+
+    const mappedWinners = useMemo(() =>
+        winnerGames ? mapWinnerData(winnerGames) : []
+        , [winnerGames]);
+
     // Refs for tab buttons
     const tabRefs = {
         popular: useRef(null),
@@ -292,7 +319,7 @@ const GamingPlatform = () => {
 
                         {/* Glider - simplified to just use red */}
                         <motion.div
-                            className="absolute bottom-0 h-[3px]" // Remove the old background color class
+                            className="absolute bottom-0 h-[3px]"
                             style={{
                                 background: "linear-gradient(90deg, #e83f5b 0%, #fa5258 100%)",
                                 boxShadow: "0px 0px 8px 0px rgba(232, 63, 91, 0.62)",
@@ -304,7 +331,6 @@ const GamingPlatform = () => {
                             }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
                         />
-
                     </div>
 
                     {/* Tab content with animation */}

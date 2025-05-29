@@ -1,9 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { WebClient } from '../services/httpclient';
 
-// Custom hook to fetch and manage game rankings data
 export const useRankingData = () => {
-    // State for each ranking type
     const [popularGames, setPopularGames] = useState(null);
     const [stakeGames, setStakeGames] = useState(null);
     const [rtpGames, setRtpGames] = useState(null);
@@ -13,14 +11,14 @@ export const useRankingData = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Add a ref to track if we're already fetching
+    const isFetchingRef = useRef(false);
 
-    // Fetch data for a specific ranking type
     const fetchRankingData = useCallback(async (endpoint, setter) => {
         try {
             const data = await WebClient.get(endpoint);
             console.log(`Fetched data from ${endpoint}:`, data);
 
-            // Check if data is different before updating state
             setter(prevData => {
                 if (JSON.stringify(prevData) !== JSON.stringify(data)) {
                     console.log(`Data changed for ${endpoint}`);
@@ -37,37 +35,59 @@ export const useRankingData = () => {
         }
     }, []);
 
-    // Fetch all data types
     const fetchAllData = useCallback(async () => {
+        // Prevent multiple simultaneous fetches
+        if (isFetchingRef.current) {
+            console.log("Already fetching data, skipping...");
+            return;
+        }
+
+        isFetchingRef.current = true;
         setIsLoading(true);
 
-        await Promise.all([
-            fetchRankingData('/by-total-spins', setPopularGames),
-            fetchRankingData('/by-total-bet', setStakeGames),
-            fetchRankingData('/by-rtp', setRtpGames),
-            fetchRankingData('/by-volatility', setVolatileGames),
-            fetchRankingData('/by-max-win', setWinnerGames),
-            fetchRankingData('/last-updated', setLastUpdated)
+        try {
+            await Promise.all([
+                fetchRankingData('/by-total-spins', setPopularGames),
+                fetchRankingData('/by-total-bet', setStakeGames),
+                fetchRankingData('/by-rtp', setRtpGames),
+                fetchRankingData('/by-volatility', setVolatileGames),
+                fetchRankingData('/by-max-win', setWinnerGames),
+                fetchRankingData('/last-updated', setLastUpdated)
+            ]);
 
-        ]);
-
-        setLastUpdated(new Date());
-        setIsLoading(false);
+            setLastUpdated(new Date());
+        } finally {
+            setIsLoading(false);
+            isFetchingRef.current = false;
+        }
     }, [fetchRankingData]);
 
-    // Initial data fetch and interval setup
     useEffect(() => {
-        // Fetch data immediately
-        fetchAllData();
+        // Prevent double execution in StrictMode
+        let mounted = true;
+
+        const initialFetch = async () => {
+            if (mounted) {
+                await fetchAllData();
+            }
+        };
+
+        initialFetch();
 
         // Set up interval for periodic updates
         const intervalId = setInterval(() => {
-            console.log("Refreshing data...");
-            fetchAllData();
+            if (mounted) {
+                console.log("Refreshing data...");
+                fetchAllData();
+            }
         }, 60000000); // 60 seconds
 
-        // Cleanup interval on unmount
-        return () => clearInterval(intervalId);
+        // Cleanup function
+        return () => {
+            mounted = false;
+            clearInterval(intervalId);
+            isFetchingRef.current = false;
+        };
     }, [fetchAllData]);
 
     return {
