@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { Eye, Play, Zap, Flame, DollarSign, TrendingUp, Bolt } from "lucide-react"
 import React from "react"
-import { FavoriteCasinos } from "./CasinoSection"
+import { TopWinnersSection } from "./CasinoSection"
 import { useRankingData } from "../hooks/fetchData"
 import { mapPopularGames, mapStakeGames, mapRtpGames, mapVolatileGames, mapWinnerData } from "../utils/HelperFunction"
 import { HorizontalCardList, RankedGameCard } from "./HoverCard"
@@ -282,7 +282,7 @@ const GamingPlatform = () => {
             <div className="w-full md:w-3/4 flex flex-col md:flex-row gap-4">
                 {/* Favorite Casinos Section */}
                 <div className="w-full md:w-1/4">
-                    <FavoriteCasinos />
+                    <TopWinnersSection />
                 </div>
 
                 {/* Game Selection Tabs - IMPROVED STYLING */}
