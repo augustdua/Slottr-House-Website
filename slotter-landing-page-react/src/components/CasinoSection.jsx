@@ -13,8 +13,7 @@ export const TopWinnersSection = () => { // Renamed component
 
     return (
         <div className="bg-[#1b1b1b] rounded-lg p-4 h-full flex flex-col">
-            <h2 className="text-xl  font-bold mb-4 flex items-center flex-shrink-0">
-                <Trophy className="w-5 h-5 text-[#ffb636] mr-2" fill="#ffb636" /> {/* Changed icon */}
+            <h2 className="text-2xl  font-bold mb-4 flex items-center flex-shrink-0">
                 Top Winners
             </h2>
             {/* Increased gap to gap-4 or gap-5 to utilize more vertical space */}

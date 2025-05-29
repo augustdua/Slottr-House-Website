@@ -62,7 +62,7 @@ export const WinnerSection = React.memo(({ winners }) => {
         <div className="w-full md:w-1/4 bg-[#1b1b1b] rounded-lg p-3 flex flex-col h-[600px]">
             {/* Fixed header - smaller text and padding */}
             <div className="flex items-center justify-between mb-3">
-                <h2 className="text-2xl font-bold">Winners</h2>
+                <h2 className="text-2xl font-bold">Live Winners</h2>
                 <div className="flex items-center gap-2">
                     <span className="bg-[#fa5258] text-white px-2 py-0.5 rounded-md font-bold text-sm">Live</span>
                     <div className="w-10 h-5 bg-[#292929] rounded-full flex items-center p-1">
